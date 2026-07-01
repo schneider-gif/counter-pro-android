@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.counterpro.app.ui.components.ArcControlWidget
 
 @Composable
 fun CounterScreen(vm: CounterViewModel) {
@@ -51,26 +52,21 @@ fun CounterScreen(vm: CounterViewModel) {
             color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(48.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            FilledTonalButton(
-                onClick = { vm.decrement() },
-                modifier = Modifier.size(80.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Text("−", fontSize = 36.sp)
-            }
-            Button(
-                onClick = { vm.increment() },
-                modifier = Modifier.size(80.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Text("+", fontSize = 36.sp)
-            }
+        // Controle gestual em arco
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            ArcControlWidget(
+                onIncrement = { vm.increment() },
+                onDecrement = { vm.decrement() },
+                modifier = Modifier.padding(end = 16.dp)
+            )
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(48.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(onClick = { vm.reset() }) { Text("Zerar") }
