@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,11 +36,11 @@ jobs:
           name: counter-pro-release
           path: app/build/outputs/apk/release/app-release.apk
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: Counter Pro v1.0.${{ github.run_number }}
+          body: "Release automático gerado pelo CI"
           files: app/build/outputs/apk/release/app-release.apk
-          generate_release_notes: true
+          make_latest: true
