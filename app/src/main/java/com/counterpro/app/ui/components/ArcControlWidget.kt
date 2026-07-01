@@ -43,6 +43,10 @@ fun ArcControlWidget(
     val context = LocalContext.current
     val vibrator = remember { context.getSystemService(Vibrator::class.java) }
 
+    // Estabilizar callbacks para evitar re-composições infinitas
+    val currentOnIncrement by rememberUpdatedState(onIncrement)
+    val currentOnDecrement by rememberUpdatedState(onDecrement)
+
     var lastAngle by remember { mutableFloatStateOf(0f) }
     var accumulatedDelta by remember { mutableFloatStateOf(0f) }
     var activeZone by remember { mutableStateOf<Zone>(Zone.NEUTRAL) }
@@ -81,13 +85,13 @@ fun ArcControlWidget(
                         val threshold = 30f // ~30dp de movimento angular = 1 unidade
                         when {
                             accumulatedDelta >= threshold -> {
-                                onIncrement()
+                                currentOnIncrement()
                                 activeZone = Zone.INCREMENT
                                 accumulatedDelta = 0f
                                 vibrateHaptic(vibrator)
                             }
                             accumulatedDelta <= -threshold -> {
-                                onDecrement()
+                                currentOnDecrement()
                                 activeZone = Zone.DECREMENT
                                 accumulatedDelta = 0f
                                 vibrateHaptic(vibrator)
@@ -106,29 +110,21 @@ fun ArcControlWidget(
                 )
             }
     ) {
-        val center = Offset(size.width / 2f, size.height / 2f)
-        val radius = minOf(size.width, size.height) / 2f * 0.8f
         val strokeWidth = 24.dp.toPx()
+        val arcWidth = 70.dp.toPx()
+        val arcHeight = 240.dp.toPx()
 
-        // Arco de 135° posicionado à direita (de -67.5° a +67.5° relativo ao eixo horizontal direito)
-        val startAngle = -67.5f // topo direito
-        val sweepAngle = 135f
+        // Arco esticado (elipse) com abertura para direita
+        val ovalLeft = size.width - arcWidth
+        val ovalTop = (size.height - arcHeight) / 2f
+        val ovalRight = size.width
+        val ovalBottom = ovalTop + arcHeight
 
-        // Metade superior: zona INCREMENT (azul)
-        val incrementAlpha = when (activeZone) {
-            Zone.INCREMENT -> 1.0f
-            Zone.DECREMENT -> 0.2f
-            Zone.NEUTRAL -> 0.4f
-        }
-        drawArc(
-            color = incrementColor.copy(alpha = incrementAlpha),
-            startAngle = startAngle,
-            sweepAngle = sweepAngle / 2f,
-            useCenter = false,
-            style = Stroke(width = strokeWidth)
-        )
+        // startAngle = 90° (baixo), sweepAngle = 180° → abertura para direita
+        val startAngle = 90f
+        val sweepAngle = 180f
 
-        // Metade inferior: zona DECREMENT (laranja)
+        // Metade superior (90° a 180°): zona DECREMENT (laranja)
         val decrementAlpha = when (activeZone) {
             Zone.DECREMENT -> 1.0f
             Zone.INCREMENT -> 0.2f
@@ -136,18 +132,38 @@ fun ArcControlWidget(
         }
         drawArc(
             color = decrementColor.copy(alpha = decrementAlpha),
-            startAngle = startAngle + sweepAngle / 2f,
+            startAngle = startAngle,
             sweepAngle = sweepAngle / 2f,
             useCenter = false,
+            topLeft = Offset(ovalLeft, ovalTop),
+            size = androidx.compose.ui.geometry.Size(arcWidth, arcHeight),
             style = Stroke(width = strokeWidth)
         )
 
-        // Marcador central neutro (dot 8dp)
+        // Metade inferior (180° a 270°): zona INCREMENT (azul)
+        val incrementAlpha = when (activeZone) {
+            Zone.INCREMENT -> 1.0f
+            Zone.DECREMENT -> 0.2f
+            Zone.NEUTRAL -> 0.4f
+        }
+        drawArc(
+            color = incrementColor.copy(alpha = incrementAlpha),
+            startAngle = startAngle + sweepAngle / 2f,
+            sweepAngle = sweepAngle / 2f,
+            useCenter = false,
+            topLeft = Offset(ovalLeft, ovalTop),
+            size = androidx.compose.ui.geometry.Size(arcWidth, arcHeight),
+            style = Stroke(width = strokeWidth)
+        )
+
+        // Marcador central neutro (dot 8dp) no centro do arco
         val dotRadius = 8.dp.toPx() / 2f
+        val arcCenterX = ovalLeft + arcWidth / 2f
+        val arcCenterY = size.height / 2f
         drawCircle(
             color = neutralColor,
             radius = dotRadius,
-            center = center
+            center = Offset(arcCenterX, arcCenterY)
         )
     }
 }
@@ -168,14 +184,18 @@ private fun calculateAngle(center: Offset, point: Offset): Float {
 
 /**
  * Determina a zona (INCREMENT, DECREMENT, NEUTRAL) baseada no ângulo.
- * Zona superior: ângulos negativos (acima do eixo horizontal)
- * Zona inferior: ângulos positivos (abaixo do eixo horizontal)
+ * Nova geometria (abertura para direita):
+ * - Zona DECREMENT: 90° a 180° (metade superior do arco vertical)
+ * - Zona INCREMENT: 180° a 270° (metade inferior do arco vertical)
  */
 private fun determineZone(angle: Float): Zone {
+    // Normalizar ângulo para [0, 360)
+    val normalizedAngle = if (angle < 0) angle + 360f else angle
+    
     return when {
-        angle < -10f -> Zone.INCREMENT // acima do centro
-        angle > 10f -> Zone.DECREMENT  // abaixo do centro
-        else -> Zone.NEUTRAL           // zona neutra central
+        normalizedAngle in 90f..180f -> Zone.DECREMENT // metade superior
+        normalizedAngle in 180f..270f -> Zone.INCREMENT // metade inferior
+        else -> Zone.NEUTRAL
     }
 }
 

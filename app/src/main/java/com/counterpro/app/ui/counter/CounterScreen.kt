@@ -52,21 +52,21 @@ fun CounterScreen(vm: CounterViewModel) {
             color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.weight(1f))
 
-        // Controle gestual em arco
+        // Controle gestual em arco (lateral direita, posicionado absolutamente)
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(300.dp),
             contentAlignment = Alignment.CenterEnd
         ) {
             ArcControlWidget(
                 onIncrement = { vm.increment() },
                 onDecrement = { vm.decrement() },
-                modifier = Modifier.padding(end = 16.dp)
+                modifier = Modifier.padding(end = 8.dp)
             )
         }
 
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.weight(1f))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(onClick = { vm.reset() }) { Text("Zerar") }
