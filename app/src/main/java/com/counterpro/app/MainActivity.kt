@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                             NavigationBarItem(
                                 selected = route == "history",
                                 onClick = { navController.navigate("history") { launchSingleTop = true } },
-                                icon = { Icon(Icons.Default.History, null) },
+                                icon = { Icon(Icons.Default.DateRange, null) },
                                 label = { Text("Histórico") }
                             )
                         }
