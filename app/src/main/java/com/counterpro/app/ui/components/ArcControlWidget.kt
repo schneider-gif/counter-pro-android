@@ -124,14 +124,14 @@ fun ArcControlWidget(
         val startAngle = 90f
         val sweepAngle = 180f
 
-        // Metade superior (90° a 180°): zona DECREMENT (laranja)
-        val decrementAlpha = when (activeZone) {
-            Zone.DECREMENT -> 1.0f
-            Zone.INCREMENT -> 0.2f
+        // Metade superior (90° a 180°): zona INCREMENT (azul)
+        val incrementAlpha = when (activeZone) {
+            Zone.INCREMENT -> 1.0f
+            Zone.DECREMENT -> 0.2f
             Zone.NEUTRAL -> 0.4f
         }
         drawArc(
-            color = decrementColor.copy(alpha = decrementAlpha),
+            color = incrementColor.copy(alpha = incrementAlpha),
             startAngle = startAngle,
             sweepAngle = sweepAngle / 2f,
             useCenter = false,
@@ -140,14 +140,14 @@ fun ArcControlWidget(
             style = Stroke(width = strokeWidth)
         )
 
-        // Metade inferior (180° a 270°): zona INCREMENT (azul)
-        val incrementAlpha = when (activeZone) {
-            Zone.INCREMENT -> 1.0f
-            Zone.DECREMENT -> 0.2f
+        // Metade inferior (180° a 270°): zona DECREMENT (laranja)
+        val decrementAlpha = when (activeZone) {
+            Zone.DECREMENT -> 1.0f
+            Zone.INCREMENT -> 0.2f
             Zone.NEUTRAL -> 0.4f
         }
         drawArc(
-            color = incrementColor.copy(alpha = incrementAlpha),
+            color = decrementColor.copy(alpha = decrementAlpha),
             startAngle = startAngle + sweepAngle / 2f,
             sweepAngle = sweepAngle / 2f,
             useCenter = false,
@@ -185,16 +185,16 @@ private fun calculateAngle(center: Offset, point: Offset): Float {
 /**
  * Determina a zona (INCREMENT, DECREMENT, NEUTRAL) baseada no ângulo.
  * Nova geometria (abertura para direita):
- * - Zona DECREMENT: 90° a 180° (metade superior do arco vertical)
- * - Zona INCREMENT: 180° a 270° (metade inferior do arco vertical)
+ * - Zona INCREMENT: 90° a 180° (metade superior do arco vertical)
+ * - Zona DECREMENT: 180° a 270° (metade inferior do arco vertical)
  */
 private fun determineZone(angle: Float): Zone {
     // Normalizar ângulo para [0, 360)
     val normalizedAngle = if (angle < 0) angle + 360f else angle
     
     return when {
-        normalizedAngle in 90f..180f -> Zone.DECREMENT // metade superior
-        normalizedAngle in 180f..270f -> Zone.INCREMENT // metade inferior
+        normalizedAngle in 90f..180f -> Zone.INCREMENT // metade superior
+        normalizedAngle in 180f..270f -> Zone.DECREMENT // metade inferior
         else -> Zone.NEUTRAL
     }
 }
